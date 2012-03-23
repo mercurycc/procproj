@@ -122,9 +122,14 @@ module w450(mem_wr_data, mem_wr_addr, mem_wr_en, mem_rd_data1, mem_rd_addr1,
 		 opcode == opcode_subi)
 	       result = operands[1] - operands[0];
 
-	     if (opcode == opcode_mov ||
-		 opcode == opcode_movi)
+	     if (opcode == opcode_movi)
 	       result = operands[0];
+
+	     if (opcode == opcode_mov)
+	       if (dst)
+		 result = operands[0];
+	       else
+		 result = operands[1];
 
 	     if ((opcode == opcode_beq ||
 		  opcode == opcode_blt) &&
