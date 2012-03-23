@@ -37,7 +37,7 @@ module w450(mem_wr_data, mem_wr_addr, mem_wr_en, mem_rd_data1, mem_rd_addr1,
 
    // internal regs
    reg 		  ignore_reg0_indirect;
-   reg [n-1:0] 	  oprands[1:0]; // Resolved oprands
+   reg [n-1:0] 	  operands[1:0]; // Resolved operands
    reg [n-1:0] 	  result; // ALU / Lresult register
 
    assign mem_rd_addr1 = PC; // read port 1 is for instructions
@@ -64,8 +64,8 @@ module w450(mem_wr_data, mem_wr_addr, mem_wr_en, mem_rd_data1, mem_rd_addr1,
    assign reg0 = IR[ir_reg0_hi : ir_reg0_lo];
    assign dst = IR[ir_dst];
 
-   initial $monitor("time %4d PC %4h IR %8b r0 %4d r1 %4d r2 %4d r3 %4d rd2 %4d // opcode %3b op1 r%1d %8b(%4d) op0 r%1d (%8b)%4d ignore %1b",
-		    $time, PC, IR, REG[0], REG[1], REG[2], REG[3], mem_rd_data2, opcode, reg1, oprands[1], oprands[1], reg0, oprands[0], oprands[0], ignore_reg0_indirect);
+    initial $monitor("time %4d PC %4h IR %8b r0 %4d r1 %4d r2 %4d r3 %4d rd2 %4d // opcode %3b op1 r%1d %8b(%4d) op0 r%1d (%8b)%4d ignore %1b",
+		    $time, PC, IR, REG[0], REG[1], REG[2], REG[3], mem_rd_data2, opcode, reg1, operands[1], operands[1], reg0, operands[0], operands[0], ignore_reg0_indirect);
 
    always@(posedge clk or posedge reset) begin // stages
       mem_wr_en = 0;
@@ -94,13 +94,13 @@ module w450(mem_wr_data, mem_wr_addr, mem_wr_en, mem_rd_data1, mem_rd_addr1,
 	     // Resolve operands
 	     // Register indirect
 	     if ( ignore_reg0_indirect || reg0 != 0 ) begin
-	       if ( reg0 >= 0 && reg0 <= 3 ) oprands[0] = REG[reg0];
+	       if ( reg0 >= 0 && reg0 <= 3 ) operands[0] = REG[reg0];
 	     end
 	     else 
-	       oprands[0] = mem_rd_data2;
+	       operands[0] = mem_rd_data2;
 
-	     // Sync the rest of the program to ensure oprands
-	     oprands[1] = REG[reg1];
+	     // Sync the rest of the program to ensure operands
+	     operands[1] = REG[reg1];
 
 	     // Execution
 
@@ -110,34 +110,34 @@ module w450(mem_wr_data, mem_wr_addr, mem_wr_en, mem_rd_data1, mem_rd_addr1,
 		 opcode == opcode_movi ||
 		 opcode == opcode_beq  ||
 		 opcode == opcode_blt) begin
-		#21 oprands[0] = mem_rd_data1;
+		#21 operands[0] = mem_rd_data1;
 		PC = PC + 1;
 	     end
 
 	     if (opcode == opcode_add ||
 		 opcode == opcode_addi)
-	       result = oprands[1] + oprands[0];
+	       result = operands[1] + operands[0];
 
 	     if (opcode == opcode_sub ||
 		 opcode == opcode_subi)
-	       result = oprands[1] - oprands[0];
+	       result = operands[1] - operands[0];
 
 	     if (opcode == opcode_mov ||
 		 opcode == opcode_movi)
-	       result = oprands[0];
+	       result = operands[0];
 
 	     if ((opcode == opcode_beq ||
 		  opcode == opcode_blt) &&
-		 oprands[0][0])
-	       oprands[0] = oprands[0] - 2;
+		 operands[0][0])
+	       operands[0] = operands[0] - 2;
 		
 	     case(opcode)
 	       opcode_beq:
 		 if (REG[reg1] == REG[reg0])
-		   PC <= PC + oprands[0];
+		   PC <= PC + operands[0];
 	       opcode_blt:
 		 if (REG[reg1] < REG[reg0])
-		   PC <= PC + oprands[0];
+		   PC <= PC + operands[0];
 	     endcase
 
 	     // Write back
