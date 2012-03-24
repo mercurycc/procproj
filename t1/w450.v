@@ -64,8 +64,8 @@ module w450(mem_wr_data, mem_wr_addr, mem_wr_en, mem_rd_data1, mem_rd_addr1,
    assign reg0 = IR[ir_reg0_hi : ir_reg0_lo];
    assign dst = IR[ir_dst];
 
-    initial $monitor("time %4d PC %4h IR %8b r0 %4d r1 %4d r2 %4d r3 %4d rd2 %4d // opcode %3b op1 r%1d %8b(%4d) op0 r%1d (%8b)%4d ignore %1b",
-		    $time, PC, IR, REG[0], REG[1], REG[2], REG[3], mem_rd_data2, opcode, reg1, operands[1], operands[1], reg0, operands[0], operands[0], ignore_reg0_indirect);
+//   initial $monitor("time %4d PC %4h IR %8b r0 %4d r1 %4d r2 %4d r3 %4d rd2 %4d // opcode %3b op1 r%1d %8b(%4d) op0 r%1d (%8b)%4d ignore %1b",
+//		    $time, PC, IR, REG[0], REG[1], REG[2], REG[3], mem_rd_data2, opcode, reg1, operands[1], operands[1], reg0, operands[0], operands[0], ignore_reg0_indirect);
 
    always@(posedge clk or posedge reset) begin // stages
       mem_wr_en = 0;
@@ -107,10 +107,14 @@ module w450(mem_wr_data, mem_wr_addr, mem_wr_en, mem_rd_data1, mem_rd_addr1,
 	     // Load immediate
 	     if (opcode == opcode_addi ||
 		 opcode == opcode_subi ||
-		 opcode == opcode_movi ||
-		 opcode == opcode_beq  ||
-		 opcode == opcode_blt) begin
+		 opcode == opcode_movi) begin
 		#21 operands[0] = mem_rd_data1;
+		PC = PC + 1;
+	     end
+
+	     if (opcode == opcode_beq  ||
+		 opcode == opcode_blt) begin
+		#21 result = mem_rd_data1;
 		PC = PC + 1;
 	     end
 
@@ -133,16 +137,16 @@ module w450(mem_wr_data, mem_wr_addr, mem_wr_en, mem_rd_data1, mem_rd_addr1,
 
 	     if ((opcode == opcode_beq ||
 		  opcode == opcode_blt) &&
-		 operands[0][0])
-	       operands[0] = operands[0] - 2;
+		 result[n - 1])
+	       result = result - 2;
 		
 	     case(opcode)
 	       opcode_beq:
 		 if (REG[reg1] == REG[reg0])
-		   PC <= PC + operands[0];
+		   PC <= PC + result;
 	       opcode_blt:
 		 if (REG[reg1] < REG[reg0])
-		   PC <= PC + operands[0];
+		   PC <= PC + result;
 	     endcase
 
 	     // Write back

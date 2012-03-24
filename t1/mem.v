@@ -16,7 +16,7 @@ module mem(wr_data, wr_addr, wr_en, rd_data1, rd_addr1, rd_data2, rd_addr2,
 	assign rd_data1 = data1;
 	assign rd_data2 = data2;
 
-	initial $readmemb("addArray.data", data);
+	initial $readmemb("programs/addArray.data", data);
 	initial $monitor("time %4d: mem[128] %3d", $time, data[128]);
 
 	always @(posedge clk) begin
