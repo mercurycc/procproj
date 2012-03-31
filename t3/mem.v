@@ -19,7 +19,7 @@ module mem(wr_data, wr_addr, wr_en, rd_data1, rd_addr1, rd_data2, rd_addr2,
 	initial $readmemb("programs/addArray.data", data);
 	initial $monitor("time %4d: mem[128] %3d", $time, data[128]);
 
-	always @(posedge clk) begin
+	always @(clk) begin
 		data1 <= data[rd_addr1];
 		data2 <= data[rd_addr2];
 		if(wr_en) data[wr_addr] <= wr_data;
